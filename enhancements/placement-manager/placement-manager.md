@@ -10,6 +10,7 @@ reviewers:
   - "@flocati"
   - "@pkliczewski"
   - "@gabriel-farache"
+  - "@ebichman"
 creation-date: 2026-01-09
 ---
 
@@ -139,10 +140,10 @@ requestBody:
       schema:
         type: object
         required:
-          - CatalogItemInstance
+          - catalogItemInstanceId
           - spec
         properties:
-          CatalogItemInstance:
+          catalogItemInstanceId:
             type: string
             description: The ID of the catalog item instance
             example: "4baa35eb-e70d-4d37-867d-0f4efa21d05c"
@@ -158,11 +159,12 @@ Example of payload for incoming VM catalog instance request
 
 ```json
 {
-  "CatalogItemInstance": "4baa35eb-e70d-4d37-867d-0f4efa21d05c",
+  "catalogItemInstanceId": "4baa35eb-e70d-4d37-867d-0f4efa21d05c",
   "spec": {
     "serviceType": "vm",
-    "memory": { "size": "2GB" },
     "vcpu": { "count": 2 },
+    "memory": { "size": "2GB" },
+    "storage": { "disks": [{ "name": "boot", "capacity": "50GB" }] },
     "guestOS": { "type": "fedora-39" },
     "access": {
       "sshPublicKey": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExample..."
@@ -175,12 +177,24 @@ Example of payload for incoming VM catalog instance request
 Response payload: Returns 201 Created if successful.
 ```json
 {
-  "CatalogItemInstanceId": "f3645f8f-82c1-4efb-888f-318c0ac81a08",
-  "resource_name": "fedora-vm",
+  "id": "08aa81d1-a0d2-4d5f-a4df-b80addf07781",
+  "path": "resources/08aa81d1-a0d2-4d5f-a4df-b80addf07781",
+  "catalogItemInstanceId": "4baa35eb-e70d-4d37-867d-0f4efa21d05c",
   "providerName": "kubevirt-sp",
-  "id": "08aa81d1-a0d2-4d5f-a4df-b80addf07781"
+  "spec": {
+    "serviceType": "vm",
+    "vcpu": { "count": 2 },
+    "memory": { "size": "2GB" },
+    "storage": { "disks": [{ "name": "boot", "capacity": "50GB" }] },
+    "guestOS": { "type": "fedora-39" },
+    "metadata": { "name": "fedora-vm" }
+  },
+  "approvalStatus": "pending",
+  "createTime": "2026-05-03T12:00:00Z",
+  "updateTime": "2026-05-03T12:00:00Z"
 }
 ```
+
 **Note**: This is **only** an example of the payload.
 
 **GET /api/v1/resources**  
@@ -189,26 +203,62 @@ List all resources according to AEP standards.
 Example of Response Payload
 
 ```json
-[
-  {
-    "CatalogItemInstance": "52540146-6212-4514-b534-0c3127b2836f",
-    "name": "nginx-container",
-    "providerName": "container-sp",
-    "instanceId": "696511df-1fcb-4f66-8ad5-aeb828f383a0"
-  },
-  {
-    "CatalogItemInstance": "4baa35eb-e70d-4d37-867d-0f4efa21d05c",
-    "name": "postgres-001",
-    "providerName": "postgres-sp",
-    "instanceId": "c66be104-eea3-4246-975c-e6cc9b32d74d"
-  },
-  {
-    "CatalogItemInstance": "f3645f8f-82c1-4efb-888f-318c0ac81a08",
-    "name": "ubuntu-vm",
-    "providerName": "kubevirt-sp",
-    "instanceId": "08aa81d1-a0d2-4d5f-a4df-b80addf07781"
-  }
-]
+{
+  "resources": [
+    {
+      "id": "696511df-1fcb-4f66-8ad5-aeb828f383a0",
+      "path": "resources/696511df-1fcb-4f66-8ad5-aeb828f383a0",
+      "catalogItemInstanceId": "52540146-6212-4514-b534-0c3127b2836f",
+      "providerName": "container-sp",
+      "spec": {
+        "serviceType": "container",
+        "image": { "reference": "docker.io/nginx:latest" },
+        "resources": {
+          "cpu": { "min": 1, "max": 2 },
+          "memory": { "min": "512MB", "max": "1GB" }
+        },
+        "metadata": { "name": "nginx-container" }
+      },
+      "approvalStatus": "approved",
+      "createTime": "2026-05-03T12:00:00Z",
+      "updateTime": "2026-05-03T12:30:00Z"
+    },
+    {
+      "id": "c66be104-eea3-4246-975c-e6cc9b32d74d",
+      "path": "resources/c66be104-eea3-4246-975c-e6cc9b32d74d",
+      "catalogItemInstanceId": "4baa35eb-e70d-4d37-867d-0f4efa21d05c",
+      "providerName": "postgres-sp",
+      "spec": {
+        "serviceType": "database",
+        "engine": "postgresql",
+        "version": "15",
+        "resources": { "cpu": 2, "memory": "8GB", "storage": "100GB" },
+        "metadata": { "name": "postgres-001" }
+      },
+      "approvalStatus": "approved",
+      "createTime": "2026-05-03T12:00:00Z",
+      "updateTime": "2026-05-03T12:30:00Z"
+    },
+    {
+      "id": "08aa81d1-a0d2-4d5f-a4df-b80addf07781",
+      "path": "resources/08aa81d1-a0d2-4d5f-a4df-b80addf07781",
+      "catalogItemInstanceId": "f3645f8f-82c1-4efb-888f-318c0ac81a08",
+      "providerName": "kubevirt-sp",
+      "spec": {
+        "serviceType": "vm",
+        "vcpu": { "count": 2 },
+        "memory": { "size": "2GB" },
+        "storage": { "disks": [{ "name": "boot", "capacity": "50GB" }] },
+        "guestOS": { "type": "ubuntu-22.04" },
+        "metadata": { "name": "ubuntu-vm" }
+      },
+      "approvalStatus": "approved",
+      "createTime": "2026-05-03T12:00:00Z",
+      "updateTime": "2026-05-03T12:30:00Z"
+    }
+  ],
+  "nextPageToken": ""
+}
 ```
 
 **GET /api/v1/resources/{resourceId}**  
@@ -218,10 +268,21 @@ Example of Response Payload
 
 ```json
 {
-  "CatalogItemInstance": "d6ebf344-bfd1-44c9-bc25-97f9fb856f22",
-  "name": "ubuntu-vm",
+  "id": "08aa81d1-a0d2-4d5f-a4df-b80addf07781",
+  "path": "resources/08aa81d1-a0d2-4d5f-a4df-b80addf07781",
+  "catalogItemInstanceId": "d6ebf344-bfd1-44c9-bc25-97f9fb856f22",
   "providerName": "kubevirt-sp",
-  "instanceId": "08aa81d1-a0d2-4d5f-a4df-b80addf07781"
+  "spec": {
+    "serviceType": "vm",
+    "vcpu": { "count": 4 },
+    "memory": { "size": "2GB" },
+    "storage": { "disks": [{ "name": "boot", "capacity": "50GB" }] },
+    "guestOS": { "type": "ubuntu-22.04" },
+    "metadata": { "name": "ubuntu-vm" }
+  },
+  "approvalStatus": "approved",
+  "createTime": "2026-05-03T12:00:00Z",
+  "updateTime": "2026-05-03T12:30:00Z"
 }
 ```
 
@@ -230,6 +291,15 @@ Delete a resource based on id.
 
 **GET /api/v1/health**  
 Retrieve the health status of Placement Manager.
+
+Example of Response Payload
+
+```json
+{
+  "status": "healthy",
+  "path": "health"
+}
+```
 
 ## Design Details
 
@@ -247,7 +317,7 @@ sequenceDiagram
     participant PE as Policy Manager
     participant SPRM as SP Resource Manager
 
-    CM->>PM: POST /api/v1/resources<br/>{CatalogItemInstance, spec}
+    CM->>PM: POST /api/v1/resources<br/>{catalogItemInstanceId, spec}
     activate PM
 
     PM->>DB: Store intent<br/>{originalRequest}
@@ -284,7 +354,7 @@ sequenceDiagram
             activate DB
             deactivate DB
 
-            PM-->>CM: 202 Accepted<br/>{instanceId, status}
+            PM-->>CM: 201 Created<br/>{Resource}
 
         end
     end
@@ -294,7 +364,7 @@ sequenceDiagram
 
 1. **Request Reception**
 
-- Catalog Manager sends a POST request to Placement Manager with `CatalogItemInstance` and
+- Catalog Manager sends a POST request to Placement Manager with `catalogItemInstanceId` and
   `spec` (resource specification)
 - Placement Manager receives and processes the request
 
@@ -333,8 +403,8 @@ sequenceDiagram
   - Request processing stops
 - If instance creation succeeds:
   - SP Resource Manager returns success response with `instanceId`, `status`
-  - Placement Manager returns 202 Accepted to Catalog Manager with `instanceId` and
-    `status`
+  - Placement Manager returns 201 Created to Catalog Manager with a full `Resource`
+    object
   - The resource is now in a `PROVISIONING` state
 
 #### Key Characteristics/Notes
